@@ -2,13 +2,12 @@ from util import move, reversal
 import json
 import os
 
-NUMBER_OF_LINES = 8
-NUMBER_OF_COLUMNS = 8
+size = 8
 
-def show_playing_area(disks, NUMBER_OF_LINES, NUMBER_OF_COLUMNS):
-    """Displays the playing area based on the size of the playing area (number_of_lines, number_of_columns) and dict of disks.""" 
-    for x in range(NUMBER_OF_LINES):
-        for y in range(NUMBER_OF_COLUMNS):
+def show_playing_area(disks):
+    """Displays the playing area based on the size of the playing area and dict of disks.""" 
+    for x in range(size):
+        for y in range(size):
             coordinate = x, y
             if coordinate in disks: 
                 if disks[coordinate] == "x":
@@ -19,17 +18,17 @@ def show_playing_area(disks, NUMBER_OF_LINES, NUMBER_OF_COLUMNS):
                 print(".", end=" ")
         print()
 
-def create_beginning_disks(NUMBER_OF_LINES, NUMBER_OF_COLUMNS):
+def create_beginning_disks():
     """Creates start of the game and returns a dictionary of coordinates and symbols in this form: coordinates (tuple): symbol (string)."""
     disks = {
-        (int((NUMBER_OF_LINES/2) - 1), int((NUMBER_OF_COLUMNS/2)-1)): "x",
-        (int(NUMBER_OF_LINES/2),int(NUMBER_OF_COLUMNS/2)): "x",
-        (int((NUMBER_OF_LINES/2) - 1),int(NUMBER_OF_COLUMNS/2)): "o",
-        (int(NUMBER_OF_LINES/2),int((NUMBER_OF_COLUMNS/2)-1)): "o"
+        (int((size/2) - 1), int((size/2)-1)): "x",
+        (int(size/2),int(size/2)): "x",
+        (int((size/2) - 1),int(size/2)): "o",
+        (int(size/2),int((size/2)-1)): "o"
         }
     return disks
 
-def ask_for_coordinates(disks, NUMBER_OF_LINES, NUMBER_OF_COLUMNS, symbol):
+def ask_for_coordinates(disks, symbol):
     """Ask for the line and the column, where the player wants to play. Returns coordinates (tuple)."""
     print("Player with {}, where do you want to play?".format(symbol))
     x = int(input("Write line"))
@@ -37,26 +36,22 @@ def ask_for_coordinates(disks, NUMBER_OF_LINES, NUMBER_OF_COLUMNS, symbol):
     coordinates = x, y
     return coordinates
 
-def check_coordinates(disks, new, NUMBER_OF_LINES, NUMBER_OF_COLUMNS):
+def check_coordinates(disks, new):
     """Check, if the new coordinate is in the playing area and empty.""" 
     x, y = new
 
-    #mé pracovní ukončení
-    if x == 999: 
-        raise SystemExit
-
-    if x > NUMBER_OF_LINES or y > NUMBER_OF_COLUMNS or x < 0 or y < 0: 
+    if x > size or y > size or x < 0 or y < 0: 
         raise ValueError("These coordinates are out of the playing area.")
     elif new in disks: 
         raise ValueError("Here already is a disc.")
     else: 
         return new
     
-def check_possible_move(disks, symbol, NUMBER_OF_LINES, NUMBER_OF_COLUMNS):
+def check_possible_move(disks, symbol):
     """Checks if the player has possible moves. Returns True (there is at least one possible move) or False (there is not possible move for the symbol). """
     state = False
-    for x in range(NUMBER_OF_LINES):
-        for y in range(NUMBER_OF_COLUMNS):
+    for x in range(size):
+        for y in range(size):
             coordinate = x, y
             if coordinate not in disks:
                 try: 
@@ -67,9 +62,9 @@ def check_possible_move(disks, symbol, NUMBER_OF_LINES, NUMBER_OF_COLUMNS):
                     pass
     return state
 
-def check_all_moves(disks, NUMBER_OF_LINES, NUMBER_OF_COLUMNS):
+def check_all_moves(disks):
     """Returns True, when there is no possible move for any of the symbols."""
-    return check_possible_move(disks, "x", NUMBER_OF_LINES, NUMBER_OF_COLUMNS) == False and check_possible_move(disks, "o", NUMBER_OF_LINES, NUMBER_OF_COLUMNS) == False
+    return check_possible_move(disks, "x") == False and check_possible_move(disks, "o") == False
 
 def player_move(disks, symbol):
     """Realizes a player move. 
@@ -78,11 +73,11 @@ def player_move(disks, symbol):
     If there is no possible move, then it prints a notice and skips the move.
     """
 
-    if check_possible_move(disks, symbol, NUMBER_OF_LINES, NUMBER_OF_COLUMNS):
+    if check_possible_move(disks, symbol):
         while True: 
             try:
-                new = ask_for_coordinates(disks, NUMBER_OF_LINES, NUMBER_OF_COLUMNS, symbol)
-                new = check_coordinates(disks, new, NUMBER_OF_LINES, NUMBER_OF_COLUMNS)
+                new = ask_for_coordinates(disks, symbol)
+                new = check_coordinates(disks, new)
                 changes = move(disks, new, symbol)
                 reversal(disks, new, symbol, changes)
                 break
@@ -91,9 +86,9 @@ def player_move(disks, symbol):
     else: 
         print("You cannot play.")
 
-def end(disks, NUMBER_OF_COLUMNS, NUMBER_OF_LINES):
+def end(disks):
     """Returns True when the playing area is full or there is only one sort of symbol left. """
-    return len(disks) == NUMBER_OF_COLUMNS*NUMBER_OF_LINES or "x" not in disks.values() or "o" not in disks.values() 
+    return len(disks) == size*size or "x" not in disks.values() or "o" not in disks.values() 
 
 def who_wins(disks):
     """Calculates score and prints the results of the game. """
@@ -143,17 +138,17 @@ def play():
         with open("othello_disks.json", encoding="utf-8") as e: 
             disks = decode_json(json.loads(e.read()))
     except FileNotFoundError:
-        disks = create_beginning_disks(NUMBER_OF_LINES, NUMBER_OF_COLUMNS)
+        disks = create_beginning_disks()
     
     #cycle alternating moves of two players
-    while not end(disks, NUMBER_OF_COLUMNS, NUMBER_OF_LINES):
-        show_playing_area(disks, NUMBER_OF_LINES, NUMBER_OF_COLUMNS)
+    while not end(disks):
+        show_playing_area(disks)
         player_move(disks, "x")
         
-        show_playing_area(disks, NUMBER_OF_LINES, NUMBER_OF_COLUMNS)
+        show_playing_area(disks)
         player_move(disks, "o")
 
-        if check_all_moves(disks, NUMBER_OF_LINES, NUMBER_OF_COLUMNS):
+        if check_all_moves(disks):
             break
 
         deposit = json.dumps(code_json(disks))
@@ -162,5 +157,5 @@ def play():
 
     #the end of the game - evaluation
     write_score(disks)
-    show_playing_area(disks, NUMBER_OF_LINES, NUMBER_OF_COLUMNS)
+    show_playing_area(disks)
     os.remove("othello_disks.json")
