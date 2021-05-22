@@ -4,7 +4,7 @@ import os
 
 size = 8
 
-def show_playing_area(disks):
+def show_playing_area(disks, size):
     """Displays the playing area based on the size of the playing area and dict of disks.""" 
     for x in range(size):
         for y in range(size):
@@ -18,7 +18,7 @@ def show_playing_area(disks):
                 print(".", end=" ")
         print()
 
-def create_beginning_disks():
+def create_beginning_disks(size):
     """Creates start of the game and returns a dictionary of coordinates and symbols in this form: coordinates (tuple): symbol (string)."""
     disks = {
         (int((size/2) - 1), int((size/2)-1)): "x",
@@ -36,7 +36,7 @@ def ask_for_coordinates(disks, symbol):
     coordinates = x, y
     return coordinates
 
-def check_coordinates(disks, new):
+def check_coordinates(disks, new, size):
     """Check, if the new coordinate is in the playing area and empty.""" 
     x, y = new
 
@@ -47,7 +47,7 @@ def check_coordinates(disks, new):
     else: 
         return new
     
-def check_possible_move(disks, symbol):
+def check_possible_move(disks, symbol, size):
     """Checks if the player has possible moves. Returns True (there is at least one possible move) or False (there is not possible move for the symbol). """
     state = False
     for x in range(size):
@@ -62,22 +62,22 @@ def check_possible_move(disks, symbol):
                     pass
     return state
 
-def check_all_moves(disks):
+def check_all_moves(disks, size):
     """Returns True, when there is no possible move for any of the symbols."""
-    return check_possible_move(disks, "x") == False and check_possible_move(disks, "o") == False
+    return check_possible_move(disks, "x", size) == False and check_possible_move(disks, "o", size) == False
 
-def player_move(disks, symbol):
+def player_move(disks, symbol, size):
     """Realizes a player move. 
     
     Looks up possible moves, asks for new coordinates, finds all changing discs, and reverses them. 
     If there is no possible move, then it prints a notice and skips the move.
     """
 
-    if check_possible_move(disks, symbol):
+    if check_possible_move(disks, symbol, size):
         while True: 
             try:
                 new = ask_for_coordinates(disks, symbol)
-                new = check_coordinates(disks, new)
+                new = check_coordinates(disks, new, size)
                 changes = move(disks, new, symbol)
                 reversal(disks, new, symbol, changes)
                 break
@@ -86,7 +86,7 @@ def player_move(disks, symbol):
     else: 
         print("You cannot play.")
 
-def end(disks):
+def end(disks, size):
     """Returns True when the playing area is full or there is only one sort of symbol left. """
     return len(disks) == size*size or "x" not in disks.values() or "o" not in disks.values() 
 
@@ -138,17 +138,17 @@ def play():
         with open("othello_disks.json", encoding="utf-8") as e: 
             disks = decode_json(json.loads(e.read()))
     except FileNotFoundError:
-        disks = create_beginning_disks()
+        disks = create_beginning_disks(size)
     
     #cycle alternating moves of two players
-    while not end(disks):
-        show_playing_area(disks)
-        player_move(disks, "x")
+    while not end(disks, size):
+        show_playing_area(disks, size)
+        player_move(disks, "x", size)
         
-        show_playing_area(disks)
-        player_move(disks, "o")
+        show_playing_area(disks, size)
+        player_move(disks, "o", size)
 
-        if check_all_moves(disks):
+        if check_all_moves(disks, size):
             break
 
         deposit = json.dumps(code_json(disks))

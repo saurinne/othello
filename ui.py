@@ -1,8 +1,10 @@
 from pyglet.window.key import MOD_OPTION
-from util import reversal
+
 import pyglet
 import othello
 import util
+#import json
+#import os
 
 size = othello.size
 c = 100
@@ -15,12 +17,19 @@ window = pyglet.window.Window(width=size * c, height=size * c)
 cerna = pyglet.image.load("cerna.png")
 bila = pyglet.image.load("bila.png")
 pole = pyglet.image.load("pole.png")
-
+state = [True]
 black = pyglet.sprite.Sprite(cerna, x=c, y=c)
 white = pyglet.sprite.Sprite(bila, x=c, y=c)
 empty = pyglet.sprite.Sprite(pole, x=c, y=c)
 
-disks = othello.create_beginning_disks()
+disks = othello.create_beginning_disks(size)
+
+# try: 
+#     with open("othello_disks.json", encoding="utf-8") as e: 
+#         disks = othello.decode_json(json.loads(e.read()))
+# except FileNotFoundError:
+#     disks = othello.create_beginning_disks(size)
+
 
 def get_symbol(): 
     if state[-1]: 
@@ -62,15 +71,17 @@ def get_coordinates(x, y):
 
 
 def click_play(x, y, b, m): 
-    if othello.end(disks) or othello.end(disks): 
+    if othello.end(disks, size) or othello.check_all_moves(disks, size): 
         othello.write_score(disks)
+        os.remove("othello_disks.json")
         raise SystemExit("End")
 
     symbol = get_symbol()
 
-    if othello.check_possible_move(disks, symbol):
+    if othello.check_possible_move(disks, symbol, size):
         try:
             new_coordinate = get_coordinates(x, y)
+            new_coordinate = othello.check_coordinates(disks, new_coordinate, size)
             changes = util.move(disks, new_coordinate, symbol)
             util.reversal(disks, new_coordinate, symbol, changes)
             change_player()
@@ -79,6 +90,10 @@ def click_play(x, y, b, m):
     else: 
         print("You cannot play.")
         change_player()
+    
+    # deposit = json.dumps(othello.code_json(disks))
+    # with open("othello_disks.json", "w", encoding="utf-8") as e: 
+    #     print(deposit, file=e)
 
 def show_color(): 
     """ Idea - ukáže, zda je tah možný"""
